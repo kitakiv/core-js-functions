@@ -32,8 +32,8 @@ function getCurrentFunctionName() {
  *   getFunctionBody(hiHello) => "function hiHello() { console.log('hello world'); }"
  *
  */
-function getFunctionBody(/* func */) {
-  throw new Error('Not implemented');
+function getFunctionBody(func) {
+  return func.toString();
 }
 
 /**
@@ -107,8 +107,16 @@ function getPolynom() {
  *   ...
  *   memoizer() => the same random number  (next run, returns the previous cached result)
  */
-function memoize(/* func */) {
-  throw new Error('Not implemented');
+function memoize(func) {
+  const cache = [];
+  return () => {
+    if (cache.length === 0) {
+      const mas = func();
+      cache.push(mas);
+      return mas;
+    }
+    return cache[0];
+  };
 }
 
 /**
@@ -126,8 +134,8 @@ function memoize(/* func */) {
  * }, 2);
  * retryer() => 2
  */
-function retry(/* func, attempts */) {
-  throw new Error('Not implemented');
+function retry(func, attempts) {
+  return func.apply(this, attempts);
 }
 
 /**
@@ -170,10 +178,16 @@ function logger(/* func, logFunc */) {
  *   partialUsingArguments(fn, 'a','b','c')('d') => 'abcd'
  *   partialUsingArguments(fn, 'a','b','c','d')() => 'abcd'
  */
-function partialUsingArguments(fn, ...args) {
-  return args.length >= fn.length
-    ? fn(...args)
-    : (...params) => partialUsingArguments(fn, ...args, ...params);
+function partialUsingArguments(func, ...args1) {
+  function curried(...args) {
+    if (args.length >= func.length) {
+      return func.apply(this, args);
+    }
+    return (...args2) => {
+      return curried.apply(this, args.concat(args2));
+    };
+  }
+  return curried(...args1);
 }
 
 /**
@@ -193,8 +207,13 @@ function partialUsingArguments(fn, ...args) {
  *   getId4() => 7
  *   getId10() => 11
  */
-function getIdGeneratorFunction(/* startFrom */) {
-  throw new Error('Not implemented');
+function getIdGeneratorFunction(startFrom) {
+  let newSum = startFrom;
+  return () => {
+    const now = newSum;
+    newSum += 1;
+    return now;
+  };
 }
 
 module.exports = {
