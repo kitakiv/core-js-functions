@@ -33,7 +33,10 @@ function getCurrentFunctionName() {
  *
  */
 function getFunctionBody(func) {
-  return func.toString();
+  if (typeof func === 'function') {
+    return func.toString();
+  }
+  return '';
 }
 
 /**
@@ -135,7 +138,19 @@ function memoize(func) {
  * retryer() => 2
  */
 function retry(func, attempts) {
-  return func.apply(this, attempts);
+  let firstAttempt = 0;
+  return function tryAgain() {
+    try {
+      const res = func();
+      return res;
+    } catch (error) {
+      firstAttempt += 1;
+      if (firstAttempt < attempts) {
+        return tryAgain();
+      }
+      throw error;
+    }
+  };
 }
 
 /**
@@ -161,8 +176,23 @@ function retry(func, attempts) {
  * cos(3.141592653589793) ends
  *
  */
-function logger(/* func, logFunc */) {
-  throw new Error('Not implemented');
+function logger(func, logFunc) {
+  return (...args) => {
+    let ar = '';
+    args.forEach((elem, index) => {
+      if (args.length === 1) {
+        ar = elem;
+      } else if (index !== args.length - 1) {
+        ar += `${JSON.stringify(elem)},`;
+      } else {
+        ar += `${elem}`;
+      }
+    });
+    logFunc(`${func.name}(${ar}) starts`);
+    const result = func(...args);
+    logFunc(`${func.name}(${ar}) ends`);
+    return result;
+  };
 }
 
 /**
@@ -187,7 +217,10 @@ function partialUsingArguments(func, ...args1) {
       return curried.apply(this, args.concat(args2));
     };
   }
-  return curried(...args1);
+  return (...arg3) => {
+    const mas = [...args1, ...arg3];
+    return curried(...mas);
+  };
 }
 
 /**
